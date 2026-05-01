@@ -14,7 +14,18 @@ import { APP_GUARD } from '@nestjs/core';
         // ttl: days(1), // per 1 day
         ttl: 60, // per 60 seconds
         blockDuration: 60, // to unblock
+      },{
+        name: 'custom1', // global limiter name
+        limit: 10, // max 10 requests
+        ttl: 60, // per 60 seconds
+        blockDuration: 60, // to unblock
+      },{
+        name: 'custom2', // global limiter name
+        limit: 20, // max 20 requests
+        ttl: 60, // per 60 seconds
+        blockDuration: 60, // to unblock
       }
+
     ],
     errorMessage: 'Too many requests, please try again later.', // custom error message
   })],
