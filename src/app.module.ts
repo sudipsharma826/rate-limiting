@@ -9,6 +9,7 @@ import { APP_GUARD } from '@nestjs/core';
   imports: [ThrottlerModule.forRoot({
     throttlers:[
       {
+        name: 'custom', // custom limiter name
         limit: 5, // max 5 requests
         // ttl: days(1), // per 1 day
         ttl: 60, // per 60 seconds
