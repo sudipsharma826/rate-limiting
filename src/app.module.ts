@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { ExecutionContext, Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
@@ -18,21 +18,21 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
       useFactory: (config: ConfigService) => ({
         throttlers: [
           {
-            name: 'custom',
-            limit: 5,
-            ttl: 60,
+            name: 'short',
+            limit: 3,
+            ttl: 1000,
             blockDuration: 60,
           },
           {
-            name: 'custom1',
-            limit: 10,
-            ttl: 60,
-            blockDuration: 60,
-          },
-          {
-            name: 'custom2',
+            name: 'medium',
             limit: 20,
-            ttl: 60,
+            ttl: 10000,
+            blockDuration: 60,
+          },
+          {
+            name: 'long',
+            limit: 20,
+            ttl: 60000,
             blockDuration: 60,
           },
         ],
@@ -40,6 +40,10 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
         storage: new ThrottlerStorageRedisService(
           config.get<string>('REDIS_URL'),
         ),
+        getTracker: (req: Record<string,any>,context : ExecutionContext) => {
+          // return req.ip; it return the ip default
+          return req.headers['x-tenant-id'] || req.ip; // it return the tenant id if exist in header otherwise return the ip
+        },
       }),
     }),
   ],
