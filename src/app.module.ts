@@ -1,38 +1,57 @@
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { days, ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
-
+import { ThrottlerStorageRedisService } from '@nest-lab/throttler-storage-redis';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 
 @Module({
-  imports: [ThrottlerModule.forRoot({
-    throttlers:[
-      {
-        name: 'custom', // custom limiter name
-        limit: 5, // max 5 requests
-        // ttl: days(1), // per 1 day
-        ttl: 60, // per 60 seconds
-        blockDuration: 60, // to unblock
-      },{
-        name: 'custom1', // global limiter name
-        limit: 10, // max 10 requests
-        ttl: 60, // per 60 seconds
-        blockDuration: 60, // to unblock
-      },{
-        name: 'custom2', // global limiter name
-        limit: 20, // max 20 requests
-        ttl: 60, // per 60 seconds
-        blockDuration: 60, // to unblock
-      }
+  imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+    }),
 
-    ],
-    errorMessage: 'Too many requests, please try again later.', // custom error message
-  })],
+    ThrottlerModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => ({
+        throttlers: [
+          {
+            name: 'custom',
+            limit: 5,
+            ttl: 60,
+            blockDuration: 60,
+          },
+          {
+            name: 'custom1',
+            limit: 10,
+            ttl: 60,
+            blockDuration: 60,
+          },
+          {
+            name: 'custom2',
+            limit: 20,
+            ttl: 60,
+            blockDuration: 60,
+          },
+        ],
+        errorMessage: 'Too many requests, please try again later.',
+        storage: new ThrottlerStorageRedisService(
+          config.get<string>('REDIS_URL'),
+        ),
+      }),
+    }),
+  ],
+
   controllers: [AppController],
-  providers: [AppService,{
-  provide: APP_GUARD, // apply throttler globally
-  useClass: ThrottlerGuard
-}],
+
+  providers: [
+    AppService,
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
+  ],
 })
 export class AppModule {}
