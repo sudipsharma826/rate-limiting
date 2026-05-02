@@ -20,29 +20,42 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
           {
             name: 'short',
             limit: 3,
-            ttl: 1000,
+            ttl: 1000, // 1 sec
             blockDuration: 60,
           },
           {
             name: 'medium',
             limit: 20,
-            ttl: 10000,
+            ttl: 10000, // 10 sec
             blockDuration: 60,
           },
           {
             name: 'long',
             limit: 20,
-            ttl: 60000,
+            ttl: 60000, // 60 sec
             blockDuration: 60,
           },
         ],
+
         errorMessage: 'Too many requests, please try again later.',
+
         storage: new ThrottlerStorageRedisService(
           config.get<string>('REDIS_URL'),
         ),
-        getTracker: (req: Record<string,any>,context : ExecutionContext) => {
-          // return req.ip; it return the ip default
-          return req.headers['x-tenant-id'] || req.ip; // it return the tenant id if exist in header otherwise return the ip
+
+        // WHO is making request
+        getTracker: (req: Record<string, any>) => {
+          const tenantId = req.headers?.['x-tenant-id'];
+          return tenantId ? tenantId : req.ip;
+        },
+
+        // HOW key is stored 
+        generateKey: (
+          context: ExecutionContext,
+          tracker: string,
+          throttlerName: string,
+        ): string => {
+          return `${throttlerName}-${tracker}`;
         },
       }),
     }),
