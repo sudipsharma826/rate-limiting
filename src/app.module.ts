@@ -1,7 +1,7 @@
 import { ExecutionContext, Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import { minutes, seconds, ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
 import { ThrottlerStorageRedisService } from '@nest-lab/throttler-storage-redis';
 import { ConfigModule, ConfigService } from '@nestjs/config';
@@ -18,22 +18,27 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
       useFactory: (config: ConfigService) => ({
         throttlers: [
           {
+            limit: 1,
+            ttl: seconds(5),
+            blockDuration: seconds(1), // 1 sec
+          },
+          {
             name: 'short',
             limit: 3,
-            ttl: 1000, // 1 sec
-            blockDuration: 60,
+            ttl: seconds(10), // 10 sec
+            blockDuration: seconds(1), // 1 sec
           },
           {
             name: 'medium',
             limit: 20,
-            ttl: 10000, // 10 sec
-            blockDuration: 60,
+            ttl: seconds(20), // 20 sec
+            blockDuration: seconds(10), // 10 sec
           },
           {
             name: 'long',
             limit: 20,
-            ttl: 60000, // 60 sec
-            blockDuration: 60,
+            ttl: seconds(60), // 60 sec
+            blockDuration: minutes(1), // 1 min
           },
         ],
 
