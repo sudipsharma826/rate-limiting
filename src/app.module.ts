@@ -15,7 +15,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
     ThrottlerModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: (config: ConfigService) => ({
+      useFactory: (config: ConfigService) => ({ // for the runtime execution useFactory
         throttlers: [
           {
             limit: 1,
@@ -44,7 +44,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 
         errorMessage: 'Too many requests, please try again later.',
 
-        storage: new ThrottlerStorageRedisService(
+        storage: new ThrottlerStorageRedisService( // all your API instances share the same rate-limit counters for the entire applications
           config.get<string>('REDIS_URL'),
         ),
 
